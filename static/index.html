@@ -7,99 +7,177 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
   :root {
-    --base-blue: #0052ff;
-    --ink: #0a0b0d;
-    --muted: #6b7280;
-    --bg: #f6f8fc;
-    --card: #ffffff;
-    --line: #e5e9f2;
-    --red: #e5484d;
-    --amber: #f5a623;
-    --green: #17a34a;
+    --base-blue: #4c8bff;
+    --base-blue-strong: #2f6bff;
+    --bg: #0a0b0f;
+    --bg-2: #0e1017;
+    --panel: #14161f;
+    --panel-2: #171a24;
+    --line: #232735;
+    --line-soft: #1c1f2b;
+    --ink: #e8ebf2;
+    --muted: #8b91a3;
+    --muted-2: #5f6577;
+    --red: #ff5c62;
+    --amber: #ffb020;
+    --green: #34d17d;
+    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
   }
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--ink);
+    margin: 0;
+    background:
+      radial-gradient(1200px 600px at 50% -200px, rgba(76,139,255,0.14), transparent 60%),
+      var(--bg);
+    color: var(--ink);
     font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
     line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
   }
-  header {
-    background: linear-gradient(135deg, var(--base-blue), #2b6bff);
-    color: #fff; padding: 34px 20px 40px;
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 22px; }
+
+  /* ── header ── */
+  header { padding: 40px 0 8px; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 13px; font-weight: 700; font-size: 27px; letter-spacing: -0.5px; }
+  .logo {
+    width: 40px; height: 40px; border-radius: 11px;
+    background: linear-gradient(140deg, var(--base-blue), var(--base-blue-strong));
+    display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 20px;
+    box-shadow: 0 6px 20px rgba(47,107,255,0.45);
   }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px; }
-  .brand { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 26px; letter-spacing: -0.4px; }
-  .logo { width: 34px; height: 34px; border-radius: 9px; background: #fff; display: grid; place-items: center; color: var(--base-blue); font-weight: 800; }
-  .tag { opacity: 0.92; margin-top: 6px; font-size: 15px; }
-  .searchbar { max-width: 860px; margin: -22px auto 0; padding: 0 20px; position: relative; }
-  .searchcard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; box-shadow: 0 12px 30px rgba(0,40,120,0.10); display: flex; gap: 10px; }
+  .pill {
+    font-size: 12px; color: var(--muted); border: 1px solid var(--line);
+    background: var(--panel); border-radius: 999px; padding: 5px 12px;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot.off { background: var(--muted-2); box-shadow: none; }
+  .tagline { color: var(--muted); font-size: 16px; margin: 18px 0 0; max-width: 640px; }
+  .tagline b { color: var(--ink); }
+
+  /* ── search ── */
+  .search { margin: 26px 0 4px; }
+  .searchcard {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 18px;
+    display: flex; gap: 10px; align-items: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+  }
+  .searchcard:focus-within { border-color: var(--base-blue); box-shadow: 0 0 0 3px rgba(76,139,255,0.18), 0 20px 50px rgba(0,0,0,0.45); }
+  .searchcard .prefix { color: var(--muted-2); font-family: var(--mono); font-size: 15px; }
   input[type=text] {
-    flex: 1; border: none; outline: none; font-size: 16px; padding: 12px 12px; color: var(--ink); background: transparent;
+    flex: 1; border: none; outline: none; font-size: 16px; padding: 12px 0; color: var(--ink); background: transparent;
   }
+  input::placeholder { color: var(--muted-2); }
   button {
-    background: var(--base-blue); color: #fff; border: none; border-radius: 10px;
-    padding: 0 22px; font-size: 15px; font-weight: 600; cursor: pointer; transition: filter .15s;
+    background: linear-gradient(140deg, var(--base-blue), var(--base-blue-strong));
+    color: #fff; border: none; border-radius: 11px; padding: 12px 24px;
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: transform .1s, filter .15s;
+    box-shadow: 0 6px 18px rgba(47,107,255,0.4);
   }
-  button:hover { filter: brightness(1.07); }
-  button:disabled { opacity: .55; cursor: default; }
-  .examples { margin-top: 12px; font-size: 13px; color: var(--muted); }
-  .examples a { color: var(--base-blue); text-decoration: none; margin-right: 12px; cursor: pointer; }
-  main { max-width: 860px; margin: 26px auto 60px; padding: 0 20px; }
-  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px; margin-bottom: 18px; }
-  .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; }
-  .trace-item { font-family: ui-monospace, "Cascadia Code", monospace; font-size: 13px; padding: 7px 0; border-bottom: 1px dashed var(--line); color: #334; }
+  button:hover { filter: brightness(1.08); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .5; cursor: default; box-shadow: none; }
+  .examples { margin-top: 14px; font-size: 13px; color: var(--muted-2); }
+  .chip {
+    display: inline-block; color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; padding: 5px 11px; margin: 4px 6px 0 0; cursor: pointer; transition: border-color .15s, background .15s;
+    font-family: var(--mono); font-size: 12.5px;
+  }
+  .chip:hover { border-color: var(--base-blue); background: var(--panel-2); }
+  .warnkey {
+    background: rgba(255,176,32,0.08); border: 1px solid rgba(255,176,32,0.3); color: #f0c46a;
+    border-radius: 12px; padding: 11px 15px; font-size: 13px; margin-top: 16px;
+  }
+  .warnkey code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+
+  /* ── panels ── */
+  main { padding: 26px 0 70px; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+    padding: 20px 24px; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .panel h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
+    margin: 0 0 14px; display: flex; align-items: center; gap: 9px;
+  }
+  .trace-item { font-family: var(--mono); font-size: 13px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); color: #b8bfd0; }
   .trace-item:last-child { border-bottom: none; }
-  .trace-item .badge { display:inline-block; background: #eef3ff; color: var(--base-blue); border-radius: 6px; padding: 1px 7px; font-weight: 600; margin-right: 8px; }
-  .report { font-size: 15.5px; }
-  .report h1, .report h2, .report h3 { line-height: 1.3; }
-  .report code { background: #f0f3fa; padding: 1px 5px; border-radius: 5px; font-size: 13px; }
+  .trace-item .badge {
+    display: inline-block; background: rgba(76,139,255,0.14); color: var(--base-blue);
+    border: 1px solid rgba(76,139,255,0.25); border-radius: 7px; padding: 2px 9px; font-weight: 600; margin-right: 9px;
+  }
+  .trace-item .args { color: var(--muted-2); }
+
+  .report { font-size: 15.5px; color: #dfe3ee; }
+  .report h1, .report h2, .report h3 { line-height: 1.3; color: #fff; }
+  .report h2 { font-size: 20px; text-transform: none; letter-spacing: 0; margin-top: 22px; }
+  .report h3 { font-size: 16px; }
+  .report strong { color: #fff; }
+  .report code { background: #0c0e14; border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; font-size: 13px; color: #9ec1ff; font-family: var(--mono); }
   .report a { color: var(--base-blue); }
-  .band { display:inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 13px; }
-  .band.high { background: #fdecec; color: var(--red); }
-  .band.elevated { background: #fef3e2; color: #b8730a; }
-  .band.moderate { background: #fff7e0; color: #8a6d00; }
-  .band.lower { background: #e7f7ec; color: var(--green); }
+  .report ul { padding-left: 20px; }
+  .report li { margin: 4px 0; }
+  .report em { color: var(--muted); }
+  .report hr { border: none; border-top: 1px solid var(--line); margin: 20px 0; }
+
+  .band { display:inline-block; padding: 4px 13px; border-radius: 999px; font-weight: 700; font-size: 12.5px; letter-spacing: .02em; }
+  .band.high { background: rgba(255,92,98,0.14); color: var(--red); border: 1px solid rgba(255,92,98,0.3); }
+  .band.elevated { background: rgba(255,150,32,0.14); color: #ffab52; border: 1px solid rgba(255,150,32,0.3); }
+  .band.moderate { background: rgba(255,200,32,0.12); color: var(--amber); border: 1px solid rgba(255,200,32,0.3); }
+  .band.lower { background: rgba(52,209,125,0.12); color: var(--green); border: 1px solid rgba(52,209,125,0.3); }
+
   .hidden { display: none; }
-  .spinner { display:inline-block; width:15px; height:15px; border:2px solid #cfe0ff; border-top-color: var(--base-blue); border-radius:50%; animation: spin .8s linear infinite; vertical-align:-2px; margin-right:8px; }
+  .spinner {
+    display:inline-block; width:14px; height:14px; border:2px solid rgba(76,139,255,0.25);
+    border-top-color: var(--base-blue); border-radius:50%; animation: spin .7s linear infinite;
+  }
   @keyframes spin { to { transform: rotate(360deg); } }
-  footer { text-align:center; color: var(--muted); font-size: 12.5px; padding: 20px; }
-  .warnkey { background:#fff7e0; border:1px solid #f0d98a; color:#7a5c00; border-radius:10px; padding:10px 14px; font-size:13px; margin-top:14px; }
+  .check { color: var(--green); font-weight: 700; }
+  footer { text-align:center; color: var(--muted-2); font-size: 12.5px; padding: 8px 0 40px; }
+  footer b { color: var(--muted); }
 </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <div class="brand"><span class="logo">B</span> BaseScout</div>
-      <div class="tag">An AI research analyst that investigates any token on <b>Base</b> — live liquidity, on-chain facts, and honest risk flags.</div>
-    </div>
-  </header>
+  <div class="wrap">
+    <header>
+      <div class="topbar">
+        <div class="brand"><span class="logo">B</span> BaseScout</div>
+        <div id="healthpill" class="pill"><span id="hdot" class="dot off"></span><span id="htext">connecting…</span></div>
+      </div>
+      <p class="tagline">An AI research analyst that investigates any token on <b>Base</b> — live liquidity, on-chain facts, and honest risk flags. Every claim traced to a real tool call.</p>
+    </header>
 
-  <div class="searchbar">
-    <div class="searchcard">
-      <input id="q" type="text" placeholder="Token ticker, name, or 0x contract address…" autocomplete="off" />
-      <button id="go">Analyze</button>
+    <div class="search">
+      <div class="searchcard">
+        <span class="prefix">&gt;</span>
+        <input id="q" type="text" placeholder="Token ticker, name, or 0x contract address…" autocomplete="off" spellcheck="false" />
+        <button id="go">Analyze</button>
+      </div>
+      <div class="examples">
+        <span class="chip" data-q="AERO">AERO</span>
+        <span class="chip" data-q="0x940181a94A35A4569E4529A3CDfB74e38FD98631">Aerodrome address</span>
+        <span class="chip" data-q="USDC on Base">USDC on Base</span>
+        <span class="chip" data-q="DEGEN">DEGEN</span>
+      </div>
+      <div id="keywarn" class="warnkey hidden">⚠️ No Anthropic API key configured — the AI report is disabled. The keyless risk engine still runs. Add <code>ANTHROPIC_API_KEY</code> to <code>.env</code> for the full analysis.</div>
     </div>
-    <div class="examples">
-      Try:
-      <a data-q="AERO">AERO</a>
-      <a data-q="0x940181a94A35A4569E4529A3CDfB74e38FD98631">Aerodrome address</a>
-      <a data-q="USDC on Base">USDC on Base</a>
-    </div>
-    <div id="keywarn" class="warnkey hidden">⚠️ No Anthropic API key configured — the AI report is disabled. The keyless risk engine still runs. Add <code>ANTHROPIC_API_KEY</code> to <code>.env</code> for full analysis.</div>
+
+    <main>
+      <div id="trace-panel" class="panel hidden">
+        <h2><span id="trace-status"></span> Agent trace</h2>
+        <div id="trace"></div>
+      </div>
+      <div id="report-panel" class="panel hidden">
+        <h2>Research brief</h2>
+        <div id="report" class="report"></div>
+      </div>
+    </main>
+
+    <footer>BaseScout · Built for the <b>Orion Builder Hackathon</b> · Not financial advice — always DYOR.</footer>
   </div>
-
-  <main>
-    <div id="trace-panel" class="panel hidden">
-      <h2><span id="trace-status"></span> Agent trace</h2>
-      <div id="trace"></div>
-    </div>
-    <div id="report-panel" class="panel hidden">
-      <h2>Research brief</h2>
-      <div id="report" class="report"></div>
-    </div>
-  </main>
-
-  <footer>BaseScout · Built for the Orion Builder Hackathon · Not financial advice — always DYOR.</footer>
 
 <script>
 const $ = (s) => document.querySelector(s);
@@ -109,14 +187,17 @@ const reportPanel = $("#report-panel"), reportEl = $("#report");
 
 async function checkHealth() {
   try {
-    const r = await fetch("/api/health");
-    const h = await r.json();
+    const h = await (await fetch("/api/health")).json();
+    $("#hdot").classList.toggle("off", !h.ai_enabled);
+    $("#htext").textContent = h.ai_enabled ? `${h.model} · Base mainnet` : "keyless mode · Base mainnet";
     if (!h.ai_enabled) $("#keywarn").classList.remove("hidden");
-  } catch (e) { /* ignore */ }
+  } catch (e) {
+    $("#htext").textContent = "offline";
+  }
 }
 checkHealth();
 
-document.querySelectorAll(".examples a").forEach(a => {
+document.querySelectorAll(".chip").forEach(a => {
   a.addEventListener("click", () => { qInput.value = a.dataset.q; run(); });
 });
 goBtn.addEventListener("click", run);
@@ -125,10 +206,9 @@ qInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(); });
 function traceLine(name, extra) {
   const div = document.createElement("div");
   div.className = "trace-item";
-  div.innerHTML = `<span class="badge">${name}</span>${extra || ""}`;
+  div.innerHTML = `<span class="badge">${name}</span><span class="args">${extra || ""}</span>`;
   traceEl.appendChild(div);
 }
-
 function bandClass(band) {
   if (!band) return "";
   if (band.includes("HIGH")) return "high";
@@ -151,16 +231,14 @@ function run() {
   traceStatus.innerHTML = '<span class="spinner"></span>';
 
   es = new EventSource(`/api/analyze/stream?q=${encodeURIComponent(q)}`);
-
   es.onmessage = (msg) => {
     const ev = JSON.parse(msg.data);
     if (ev.type === "tool_call") {
-      traceLine(ev.name, `<span style="color:#6b7280">${escapeHtml(JSON.stringify(ev.input))}</span>`);
+      traceLine(ev.name, escapeHtml(JSON.stringify(ev.input)));
     } else if (ev.type === "tool_result") {
       const band = ev.result && ev.result.risk_band;
-      if (band) {
-        const line = traceEl.lastChild;
-        if (line) line.innerHTML += ` → <span class="band ${bandClass(band)}">${band} (${ev.result.risk_score}/100)</span>`;
+      if (band && traceEl.lastChild) {
+        traceEl.lastChild.innerHTML += ` <span class="band ${bandClass(band)}">${band} · ${ev.result.risk_score}/100</span>`;
       }
     } else if (ev.type === "final") {
       reportPanel.classList.remove("hidden");
@@ -168,11 +246,12 @@ function run() {
     } else if (ev.type === "error") {
       reportPanel.classList.remove("hidden");
       reportEl.innerHTML = `<p style="color:var(--red)"><b>Error:</b> ${escapeHtml(ev.message)}</p>
-        <p style="color:#6b7280">If this is about the API key, add <code>ANTHROPIC_API_KEY</code> to your <code>.env</code>.</p>`;
+        <p style="color:var(--muted)">If this is about the API key, add <code>ANTHROPIC_API_KEY</code> to your <code>.env</code>.</p>`;
     }
   };
-  es.addEventListener("end", () => { es.close(); goBtn.disabled = false; traceStatus.innerHTML = "✓"; });
-  es.onerror = () => { es.close(); goBtn.disabled = false; traceStatus.innerHTML = "✓"; };
+  es.addEventListener("end", finish);
+  es.onerror = finish;
+  function finish() { es.close(); goBtn.disabled = false; traceStatus.innerHTML = '<span class="check">✓</span>'; }
 }
 
 function escapeHtml(s) {
