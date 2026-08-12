@@ -4,175 +4,215 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>BaseScout — AI DeFi research analyst for Base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
   :root {
-    --base-blue: #4c8bff;
-    --base-blue-strong: #2f6bff;
-    --bg: #0a0b0f;
-    --bg-2: #0e1017;
-    --panel: #14161f;
-    --panel-2: #171a24;
-    --line: #232735;
-    --line-soft: #1c1f2b;
-    --ink: #e8ebf2;
-    --muted: #8b91a3;
-    --muted-2: #5f6577;
+    --blue: #4c8bff;
+    --blue-2: #2f6bff;
+    --cyan: #37e6d4;
+    --violet: #8b7bff;
+    --bg: #06070c;
+    --panel: rgba(20, 23, 33, 0.72);
+    --panel-solid: #12141d;
+    --line: rgba(255,255,255,0.08);
+    --line-2: rgba(255,255,255,0.12);
+    --ink: #eef1f8;
+    --muted: #9aa1b4;
+    --muted-2: #626878;
     --red: #ff5c62;
     --amber: #ffb020;
     --green: #34d17d;
-    --mono: ui-monospace, "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+    --head: "Space Grotesk", system-ui, sans-serif;
+    --body: "Inter", system-ui, -apple-system, sans-serif;
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; }
+  html { scroll-behavior: smooth; }
   body {
-    margin: 0;
-    background:
-      radial-gradient(1200px 600px at 50% -200px, rgba(76,139,255,0.14), transparent 60%),
-      var(--bg);
-    color: var(--ink);
-    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-    line-height: 1.55;
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--body); line-height: 1.55; overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 900px; margin: 0 auto; padding: 0 22px; }
+  /* ── animated aurora backdrop ── */
+  .aurora { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55; animation: float 18s ease-in-out infinite; }
+  .b1 { width: 620px; height: 620px; background: radial-gradient(circle, #2f6bff, transparent 70%); top: -260px; left: 50%; transform: translateX(-50%); }
+  .b2 { width: 480px; height: 480px; background: radial-gradient(circle, #37e6d4, transparent 70%); top: 120px; left: -160px; animation-delay: -6s; opacity: .28; }
+  .b3 { width: 520px; height: 520px; background: radial-gradient(circle, #8b7bff, transparent 70%); top: 220px; right: -180px; animation-delay: -11s; opacity: .3; }
+  @keyframes float { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(0,40px) scale(1.08); } }
+  .grid-overlay { position: fixed; inset: 0; z-index: -1;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 46px 46px; mask-image: radial-gradient(circle at 50% 20%, black, transparent 75%); }
 
-  /* ── header ── */
-  header { padding: 40px 0 8px; }
-  .topbar { display: flex; align-items: center; justify-content: space-between; }
-  .brand { display: flex; align-items: center; gap: 13px; font-weight: 700; font-size: 27px; letter-spacing: -0.5px; }
-  .logo {
-    width: 40px; height: 40px; border-radius: 11px;
-    background: linear-gradient(140deg, var(--base-blue), var(--base-blue-strong));
-    display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 20px;
-    box-shadow: 0 6px 20px rgba(47,107,255,0.45);
-  }
-  .pill {
-    font-size: 12px; color: var(--muted); border: 1px solid var(--line);
-    background: var(--panel); border-radius: 999px; padding: 5px 12px;
-    display: inline-flex; align-items: center; gap: 7px;
-  }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
-  .dot.off { background: var(--muted-2); box-shadow: none; }
-  .tagline { color: var(--muted); font-size: 16px; margin: 18px 0 0; max-width: 640px; }
-  .tagline b { color: var(--ink); }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 22px; }
+
+  /* ── nav ── */
+  nav { position: sticky; top: 0; z-index: 20; backdrop-filter: blur(14px); background: rgba(6,7,12,0.55); border-bottom: 1px solid var(--line); }
+  .nav-in { max-width: 940px; margin: 0 auto; padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 12px; font-family: var(--head); font-weight: 700; font-size: 21px; letter-spacing: -0.4px; }
+  .logo { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(140deg, var(--blue), var(--blue-2)); display: grid; place-items: center; color:#fff; font-weight: 800; box-shadow: 0 6px 20px rgba(47,107,255,0.5); position: relative; }
+  .logo::after { content:""; position:absolute; inset:0; border-radius:10px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25); }
+  .pill { font-size: 12px; color: var(--muted); border: 1px solid var(--line-2); background: rgba(255,255,255,0.03); border-radius: 999px; padding: 6px 13px; display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+  .dot.off { background: var(--muted-2); box-shadow: none; animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+  /* ── hero ── */
+  .hero { text-align: center; padding: 66px 0 8px; }
+  .badge-top { display:inline-flex; align-items:center; gap:8px; font-size:12.5px; color:var(--cyan); border:1px solid rgba(55,230,212,0.3); background:rgba(55,230,212,0.07); border-radius:999px; padding:6px 14px; margin-bottom:22px; font-weight:500; letter-spacing:.02em; }
+  h1 { font-family: var(--head); font-size: 52px; line-height: 1.05; letter-spacing: -1.5px; margin: 0; font-weight: 700; }
+  h1 .grad { background: linear-gradient(100deg, var(--blue) 10%, var(--cyan) 55%, var(--violet)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { color: var(--muted); font-size: 18px; max-width: 600px; margin: 20px auto 0; }
+  .sub b { color: var(--ink); }
 
   /* ── search ── */
-  .search { margin: 26px 0 4px; }
-  .searchcard {
-    background: linear-gradient(180deg, var(--panel-2), var(--panel));
-    border: 1px solid var(--line); border-radius: 16px; padding: 10px 10px 10px 18px;
-    display: flex; gap: 10px; align-items: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.45);
-  }
-  .searchcard:focus-within { border-color: var(--base-blue); box-shadow: 0 0 0 3px rgba(76,139,255,0.18), 0 20px 50px rgba(0,0,0,0.45); }
-  .searchcard .prefix { color: var(--muted-2); font-family: var(--mono); font-size: 15px; }
-  input[type=text] {
-    flex: 1; border: none; outline: none; font-size: 16px; padding: 12px 0; color: var(--ink); background: transparent;
-  }
+  .search { max-width: 680px; margin: 34px auto 0; }
+  .searchcard { background: linear-gradient(180deg, rgba(30,34,48,0.85), rgba(18,20,29,0.85)); border: 1px solid var(--line-2); border-radius: 18px; padding: 9px 9px 9px 20px; display: flex; gap: 10px; align-items: center; box-shadow: 0 26px 60px rgba(0,0,0,0.55); transition: border-color .2s, box-shadow .2s; }
+  .searchcard:focus-within { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(76,139,255,0.2), 0 26px 60px rgba(0,0,0,0.55); }
+  .searchcard .prefix { color: var(--blue); font-family: var(--mono); font-size: 16px; }
+  input[type=text] { flex: 1; border: none; outline: none; font-size: 16px; padding: 13px 0; color: var(--ink); background: transparent; font-family: var(--body); }
   input::placeholder { color: var(--muted-2); }
-  button {
-    background: linear-gradient(140deg, var(--base-blue), var(--base-blue-strong));
-    color: #fff; border: none; border-radius: 11px; padding: 12px 24px;
-    font-size: 15px; font-weight: 600; cursor: pointer; transition: transform .1s, filter .15s;
-    box-shadow: 0 6px 18px rgba(47,107,255,0.4);
-  }
-  button:hover { filter: brightness(1.08); }
-  button:active { transform: translateY(1px); }
-  button:disabled { opacity: .5; cursor: default; box-shadow: none; }
-  .examples { margin-top: 14px; font-size: 13px; color: var(--muted-2); }
-  .chip {
-    display: inline-block; color: var(--ink); background: var(--panel); border: 1px solid var(--line);
-    border-radius: 8px; padding: 5px 11px; margin: 4px 6px 0 0; cursor: pointer; transition: border-color .15s, background .15s;
-    font-family: var(--mono); font-size: 12.5px;
-  }
-  .chip:hover { border-color: var(--base-blue); background: var(--panel-2); }
-  .warnkey {
-    background: rgba(255,176,32,0.08); border: 1px solid rgba(255,176,32,0.3); color: #f0c46a;
-    border-radius: 12px; padding: 11px 15px; font-size: 13px; margin-top: 16px;
-  }
-  .warnkey code { background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 5px; }
+  button.go { background: linear-gradient(140deg, var(--blue), var(--blue-2)); color:#fff; border:none; border-radius: 13px; padding: 13px 26px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: var(--head); transition: transform .1s, filter .15s; box-shadow: 0 8px 22px rgba(47,107,255,0.45); }
+  button.go:hover { filter: brightness(1.1); }
+  button.go:active { transform: translateY(1px); }
+  button.go:disabled { opacity: .5; cursor: default; box-shadow: none; }
+  .examples { margin-top: 16px; text-align: center; }
+  .chip { display: inline-block; color: var(--muted); background: rgba(255,255,255,0.035); border: 1px solid var(--line); border-radius: 9px; padding: 6px 13px; margin: 5px 5px 0; cursor: pointer; transition: all .15s; font-family: var(--mono); font-size: 12.5px; }
+  .chip:hover { border-color: var(--blue); color: var(--ink); background: rgba(76,139,255,0.1); transform: translateY(-1px); }
+  .warnkey { max-width: 680px; margin: 18px auto 0; background: rgba(255,176,32,0.07); border: 1px solid rgba(255,176,32,0.28); color: #f0c46a; border-radius: 13px; padding: 12px 16px; font-size: 13px; }
+  .warnkey code { background: rgba(255,255,255,0.07); padding: 1px 6px; border-radius: 5px; }
 
-  /* ── panels ── */
-  main { padding: 26px 0 70px; }
-  .panel {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
-    padding: 20px 24px; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  }
-  .panel h2 {
-    font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
-    margin: 0 0 14px; display: flex; align-items: center; gap: 9px;
-  }
-  .trace-item { font-family: var(--mono); font-size: 13px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); color: #b8bfd0; }
+  main { padding: 34px 0 80px; }
+  .reveal { opacity: 0; transform: translateY(14px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; }
+  @keyframes rise { to { opacity:1; transform: none; } }
+
+  .panel { background: var(--panel); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 20px; padding: 22px 26px; margin-bottom: 20px; box-shadow: 0 14px 40px rgba(0,0,0,0.35); }
+  .panel h2 { font-family: var(--head); font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 0 0 16px; display: flex; align-items: center; gap: 9px; }
+
+  /* ── risk dashboard ── */
+  .dash { display: grid; grid-template-columns: 200px 1fr; gap: 24px; align-items: center; }
+  @media (max-width: 640px) { .dash { grid-template-columns: 1fr; } }
+  .gauge { position: relative; width: 190px; height: 190px; margin: 0 auto; }
+  .gauge svg { transform: rotate(-90deg); }
+  .gauge .center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+  .gauge .score { font-family: var(--head); font-size: 44px; font-weight: 700; line-height: 1; }
+  .gauge .of { color: var(--muted-2); font-size: 13px; font-family: var(--mono); margin-top: 3px; }
+  .band-label { text-align: center; margin-top: 12px; font-family: var(--head); font-weight: 700; font-size: 14px; letter-spacing: .04em; padding: 5px 0; border-radius: 10px; }
+  .token-title { font-family: var(--head); font-size: 24px; font-weight: 700; margin: 0 0 3px; }
+  .token-sub { color: var(--muted); font-size: 13px; font-family: var(--mono); margin-bottom: 16px; word-break: break-all; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 520px) { .stats { grid-template-columns: repeat(2,1fr); } }
+  .stat { background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 13px; padding: 12px 14px; }
+  .stat .k { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted-2); font-family: var(--mono); }
+  .stat .v { font-family: var(--head); font-size: 18px; font-weight: 600; margin-top: 4px; }
+
+  .signals { margin-top: 22px; display: grid; gap: 10px; }
+  .sig { display: flex; gap: 12px; align-items: flex-start; background: rgba(255,255,255,0.025); border: 1px solid var(--line); border-left-width: 3px; border-radius: 12px; padding: 12px 15px; }
+  .sig.high { border-left-color: var(--red); } .sig.medium { border-left-color: var(--amber); } .sig.low { border-left-color: var(--green); }
+  .sig .ic { font-size: 15px; margin-top: 1px; }
+  .sig .t { font-weight: 600; font-size: 14.5px; }
+  .sig .d { color: var(--muted); font-size: 13px; }
+
+  /* ── trace ── */
+  .trace-head { display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+  .trace-head .toggle { font-family: var(--mono); font-size: 12px; color: var(--muted-2); }
+  .trace-item { font-family: var(--mono); font-size: 13px; padding: 10px 0; border-bottom: 1px solid var(--line); color: #b8bfd0; display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
   .trace-item:last-child { border-bottom: none; }
-  .trace-item .badge {
-    display: inline-block; background: rgba(76,139,255,0.14); color: var(--base-blue);
-    border: 1px solid rgba(76,139,255,0.25); border-radius: 7px; padding: 2px 9px; font-weight: 600; margin-right: 9px;
-  }
+  .trace-item .badge { background: rgba(76,139,255,0.14); color: var(--blue); border: 1px solid rgba(76,139,255,0.28); border-radius: 8px; padding: 3px 10px; font-weight: 500; }
   .trace-item .args { color: var(--muted-2); }
+  .rbadge { padding: 3px 11px; border-radius: 999px; font-weight: 600; font-size: 12px; }
+  .rbadge.high { background: rgba(255,92,98,0.16); color: var(--red); } .rbadge.elevated { background: rgba(255,150,32,0.16); color:#ffab52; } .rbadge.moderate { background: rgba(255,200,32,0.14); color: var(--amber); } .rbadge.lower { background: rgba(52,209,125,0.14); color: var(--green); }
 
+  /* ── report ── */
   .report { font-size: 15.5px; color: #dfe3ee; }
-  .report h1, .report h2, .report h3 { line-height: 1.3; color: #fff; }
-  .report h2 { font-size: 20px; text-transform: none; letter-spacing: 0; margin-top: 22px; }
+  .report h1,.report h2,.report h3 { font-family: var(--head); color:#fff; line-height:1.3; }
+  .report h2 { font-size: 20px; text-transform: none; letter-spacing: 0; margin-top: 24px; border:none; }
   .report h3 { font-size: 16px; }
-  .report strong { color: #fff; }
-  .report code { background: #0c0e14; border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; font-size: 13px; color: #9ec1ff; font-family: var(--mono); }
-  .report a { color: var(--base-blue); }
-  .report ul { padding-left: 20px; }
-  .report li { margin: 4px 0; }
+  .report strong { color:#fff; }
+  .report code { background:#0b0d14; border:1px solid var(--line); padding:1px 6px; border-radius:6px; font-size:13px; color:#9ec1ff; font-family:var(--mono); }
+  .report a { color: var(--blue); }
+  .report ul { padding-left: 20px; } .report li { margin: 5px 0; }
   .report em { color: var(--muted); }
-  .report hr { border: none; border-top: 1px solid var(--line); margin: 20px 0; }
+  .report hr { border:none; border-top:1px solid var(--line); margin:22px 0; }
 
-  .band { display:inline-block; padding: 4px 13px; border-radius: 999px; font-weight: 700; font-size: 12.5px; letter-spacing: .02em; }
-  .band.high { background: rgba(255,92,98,0.14); color: var(--red); border: 1px solid rgba(255,92,98,0.3); }
-  .band.elevated { background: rgba(255,150,32,0.14); color: #ffab52; border: 1px solid rgba(255,150,32,0.3); }
-  .band.moderate { background: rgba(255,200,32,0.12); color: var(--amber); border: 1px solid rgba(255,200,32,0.3); }
-  .band.lower { background: rgba(52,209,125,0.12); color: var(--green); border: 1px solid rgba(52,209,125,0.3); }
-
-  .hidden { display: none; }
-  .spinner {
-    display:inline-block; width:14px; height:14px; border:2px solid rgba(76,139,255,0.25);
-    border-top-color: var(--base-blue); border-radius:50%; animation: spin .7s linear infinite;
-  }
+  .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(76,139,255,0.25); border-top-color: var(--blue); border-radius:50%; animation: spin .7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .check { color: var(--green); font-weight: 700; }
-  footer { text-align:center; color: var(--muted-2); font-size: 12.5px; padding: 8px 0 40px; }
+  .thinking { display:flex; align-items:center; gap:10px; color: var(--muted); font-size:14px; font-family: var(--mono); }
+  .check { color: var(--green); }
+  .hidden { display: none; }
+  footer { text-align:center; color: var(--muted-2); font-size: 12.5px; padding: 10px 0 44px; }
   footer b { color: var(--muted); }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="topbar">
-        <div class="brand"><span class="logo">B</span> BaseScout</div>
-        <div id="healthpill" class="pill"><span id="hdot" class="dot off"></span><span id="htext">connecting…</span></div>
-      </div>
-      <p class="tagline">An AI research analyst that investigates any token on <b>Base</b> — live liquidity, on-chain facts, and honest risk flags. Every claim traced to a real tool call.</p>
-    </header>
+  <div class="aurora"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+  <div class="grid-overlay"></div>
 
-    <div class="search">
-      <div class="searchcard">
-        <span class="prefix">&gt;</span>
-        <input id="q" type="text" placeholder="Token ticker, name, or 0x contract address…" autocomplete="off" spellcheck="false" />
-        <button id="go">Analyze</button>
-      </div>
-      <div class="examples">
-        <span class="chip" data-q="AERO">AERO</span>
-        <span class="chip" data-q="0x940181a94A35A4569E4529A3CDfB74e38FD98631">Aerodrome address</span>
-        <span class="chip" data-q="USDC on Base">USDC on Base</span>
-        <span class="chip" data-q="DEGEN">DEGEN</span>
-      </div>
-      <div id="keywarn" class="warnkey hidden">⚠️ No Anthropic API key configured — the AI report is disabled. The keyless risk engine still runs. Add <code>ANTHROPIC_API_KEY</code> to <code>.env</code> for the full analysis.</div>
+  <nav>
+    <div class="nav-in">
+      <div class="brand"><span class="logo">B</span> BaseScout</div>
+      <div class="pill"><span id="hdot" class="dot off"></span><span id="htext">connecting…</span></div>
     </div>
+  </nav>
+
+  <div class="wrap">
+    <section class="hero">
+      <div class="badge-top">◈ Live on Base mainnet · powered by Claude</div>
+      <h1>Research any Base token<br><span class="grad">before you ape in.</span></h1>
+      <p class="sub">An autonomous AI analyst that pulls <b>live liquidity, on-chain facts & risk signals</b> — then writes you an honest brief. No hype. Every claim traced to a real tool call.</p>
+
+      <div class="search">
+        <div class="searchcard">
+          <span class="prefix">&gt;</span>
+          <input id="q" type="text" placeholder="Token ticker, name, or 0x contract address…" autocomplete="off" spellcheck="false" />
+          <button class="go" id="go">Analyze</button>
+        </div>
+        <div class="examples">
+          <span class="chip" data-q="AERO">AERO</span>
+          <span class="chip" data-q="0x940181a94A35A4569E4529A3CDfB74e38FD98631">Aerodrome address</span>
+          <span class="chip" data-q="USDC on Base">USDC on Base</span>
+          <span class="chip" data-q="DEGEN">DEGEN</span>
+        </div>
+        <div id="keywarn" class="warnkey hidden">⚠️ No Anthropic API key configured — the AI brief is off. The keyless risk engine still runs. Add <code>ANTHROPIC_API_KEY</code> to <code>.env</code>.</div>
+      </div>
+    </section>
 
     <main>
-      <div id="trace-panel" class="panel hidden">
-        <h2><span id="trace-status"></span> Agent trace</h2>
-        <div id="trace"></div>
+      <div id="status" class="panel hidden"><div class="thinking"><span class="spinner"></span><span id="status-text">BaseScout is investigating…</span></div></div>
+
+      <div id="dash-panel" class="panel hidden">
+        <h2>◆ Risk dashboard</h2>
+        <div class="dash">
+          <div>
+            <div class="gauge">
+              <svg width="190" height="190">
+                <circle cx="95" cy="95" r="82" stroke="rgba(255,255,255,0.07)" stroke-width="13" fill="none"/>
+                <circle id="gauge-arc" cx="95" cy="95" r="82" stroke="var(--green)" stroke-width="13" fill="none" stroke-linecap="round" stroke-dasharray="515" stroke-dashoffset="515"/>
+              </svg>
+              <div class="center"><div><div id="gauge-score" class="score">0</div><div class="of">/ 100 risk</div></div></div>
+            </div>
+            <div id="band-label" class="band-label"></div>
+          </div>
+          <div>
+            <div id="token-title" class="token-title"></div>
+            <div id="token-sub" class="token-sub"></div>
+            <div id="stats" class="stats"></div>
+          </div>
+        </div>
+        <div id="signals" class="signals"></div>
       </div>
+
       <div id="report-panel" class="panel hidden">
-        <h2>Research brief</h2>
+        <h2>✎ Research brief</h2>
         <div id="report" class="report"></div>
+      </div>
+
+      <div id="trace-panel" class="panel hidden">
+        <div class="trace-head" id="trace-head"><h2 style="margin:0">⚙ Agent trace</h2><span class="toggle" id="trace-toggle">hide ▾</span></div>
+        <div id="trace" style="margin-top:14px"></div>
       </div>
     </main>
 
@@ -182,81 +222,104 @@
 <script>
 const $ = (s) => document.querySelector(s);
 const qInput = $("#q"), goBtn = $("#go");
-const tracePanel = $("#trace-panel"), traceEl = $("#trace"), traceStatus = $("#trace-status");
-const reportPanel = $("#report-panel"), reportEl = $("#report");
 
 async function checkHealth() {
   try {
     const h = await (await fetch("/api/health")).json();
     $("#hdot").classList.toggle("off", !h.ai_enabled);
-    $("#htext").textContent = h.ai_enabled ? `${h.model} · Base mainnet` : "keyless mode · Base mainnet";
+    $("#htext").textContent = h.ai_enabled ? `${h.model}` : "keyless mode";
     if (!h.ai_enabled) $("#keywarn").classList.remove("hidden");
-  } catch (e) {
-    $("#htext").textContent = "offline";
-  }
+  } catch (e) { $("#htext").textContent = "offline"; }
 }
 checkHealth();
 
-document.querySelectorAll(".chip").forEach(a => {
-  a.addEventListener("click", () => { qInput.value = a.dataset.q; run(); });
-});
+document.querySelectorAll(".chip").forEach(a => a.addEventListener("click", () => { qInput.value = a.dataset.q; run(); }));
 goBtn.addEventListener("click", run);
 qInput.addEventListener("keydown", (e) => { if (e.key === "Enter") run(); });
+$("#trace-head").addEventListener("click", () => {
+  const t = $("#trace"), tg = $("#trace-toggle");
+  const hidden = t.style.display === "none";
+  t.style.display = hidden ? "block" : "none";
+  tg.textContent = hidden ? "hide ▾" : "show ▸";
+});
 
-function traceLine(name, extra) {
-  const div = document.createElement("div");
-  div.className = "trace-item";
-  div.innerHTML = `<span class="badge">${name}</span><span class="args">${extra || ""}</span>`;
-  traceEl.appendChild(div);
+const CIRC = 2 * Math.PI * 82;
+function bandKey(b){ if(!b) return "lower"; if(b.includes("HIGH")) return "high"; if(b.includes("ELEVATED")) return "elevated"; if(b.includes("MODERATE")) return "moderate"; return "lower"; }
+function bandColor(k){ return {high:"#ff5c62", elevated:"#ffab52", moderate:"#ffb020", lower:"#34d17d"}[k]; }
+function fmtUsd(n){ if(n==null) return "—"; n=Number(n); if(n>=1e9) return "$"+(n/1e9).toFixed(2)+"B"; if(n>=1e6) return "$"+(n/1e6).toFixed(2)+"M"; if(n>=1e3) return "$"+(n/1e3).toFixed(1)+"K"; if(n>0&&n<1) return "$"+n.toPrecision(3); return "$"+n.toLocaleString(undefined,{maximumFractionDigits:2}); }
+function fmtNum(n){ if(n==null) return "—"; n=Number(n); if(n>=1e9) return (n/1e9).toFixed(2)+"B"; if(n>=1e6) return (n/1e6).toFixed(2)+"M"; if(n>=1e3) return (n/1e3).toFixed(1)+"K"; return n.toLocaleString(undefined,{maximumFractionDigits:0}); }
+
+function renderDashboard(r){
+  const key = bandKey(r.risk_band), col = bandColor(key);
+  const dash = $("#dash-panel"); dash.classList.remove("hidden"); dash.classList.add("reveal");
+
+  // gauge
+  const arc = $("#gauge-arc");
+  arc.setAttribute("stroke", col);
+  const score = r.risk_score || 0;
+  setTimeout(() => { arc.style.transition = "stroke-dashoffset 1.1s cubic-bezier(.2,.7,.3,1)"; arc.setAttribute("stroke-dashoffset", CIRC * (1 - score/100)); }, 60);
+  animateNumber($("#gauge-score"), score);
+  const bl = $("#band-label"); bl.textContent = r.risk_band; bl.style.color = col; bl.style.background = col.replace(")", ",0.13)").replace("#","rgba-"); bl.style.background = hexA(col,0.13);
+
+  const snap = r.market_snapshot || {}, oc = r.onchain_snapshot || {};
+  $("#token-title").textContent = snap.symbol ? `${snap.symbol}${snap.name && snap.name!==snap.symbol ? " · "+snap.name : ""}` : "Token";
+  $("#token-sub").textContent = r.token_address || "";
+  const stats = [
+    ["Price", fmtUsd(snap.price_usd)],
+    ["Liquidity", fmtUsd(snap.total_liquidity_usd)],
+    ["24h Volume", fmtUsd(snap.total_volume_24h_usd)],
+    ["FDV", fmtUsd(snap.fdv_usd)],
+    ["Pairs", snap.pair_count!=null ? snap.pair_count : "—"],
+    ["Supply", oc.total_supply!=null ? fmtNum(oc.total_supply) : "—"],
+  ];
+  $("#stats").innerHTML = stats.map(([k,v]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+
+  const icon = {high:"🔴", medium:"🟡", low:"🟢"};
+  $("#signals").innerHTML = (r.signals||[]).map(s =>
+    `<div class="sig ${s.level}"><span class="ic">${icon[s.level]||"•"}</span><div><div class="t">${escapeHtml(s.title)}</div><div class="d">${escapeHtml(s.detail)}</div></div></div>`
+  ).join("");
 }
-function bandClass(band) {
-  if (!band) return "";
-  if (band.includes("HIGH")) return "high";
-  if (band.includes("ELEVATED")) return "elevated";
-  if (band.includes("MODERATE")) return "moderate";
-  return "lower";
-}
+function hexA(hex, a){ const n=parseInt(hex.slice(1),16); return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; }
+function animateNumber(el, target){ let cur=0; const step=Math.max(1,Math.round(target/28)); const id=setInterval(()=>{ cur+=step; if(cur>=target){cur=target;clearInterval(id);} el.textContent=cur; }, 22); }
 
-let es = null;
-function run() {
-  const q = qInput.value.trim();
-  if (!q) return;
-  if (es) es.close();
+function traceLine(name, extra){ const d=document.createElement("div"); d.className="trace-item reveal"; d.innerHTML=`<span class="badge">${name}</span><span class="args">${extra||""}</span>`; $("#trace").appendChild(d); }
 
-  goBtn.disabled = true;
-  traceEl.innerHTML = "";
-  reportEl.innerHTML = "";
-  reportPanel.classList.add("hidden");
-  tracePanel.classList.remove("hidden");
-  traceStatus.innerHTML = '<span class="spinner"></span>';
+let es=null;
+function run(){
+  const q=qInput.value.trim(); if(!q) return; if(es) es.close();
+  goBtn.disabled=true;
+  $("#trace").innerHTML=""; $("#report").innerHTML="";
+  ["dash-panel","report-panel"].forEach(id=>$("#"+id).classList.add("hidden"));
+  $("#status").classList.remove("hidden"); $("#status-text").textContent="BaseScout is investigating…";
+  $("#trace-panel").classList.remove("hidden");
 
-  es = new EventSource(`/api/analyze/stream?q=${encodeURIComponent(q)}`);
-  es.onmessage = (msg) => {
-    const ev = JSON.parse(msg.data);
-    if (ev.type === "tool_call") {
+  es=new EventSource(`/api/analyze/stream?q=${encodeURIComponent(q)}`);
+  es.onmessage=(msg)=>{
+    const ev=JSON.parse(msg.data);
+    if(ev.type==="tool_call"){
+      $("#status-text").textContent=`Running ${ev.name}…`;
       traceLine(ev.name, escapeHtml(JSON.stringify(ev.input)));
-    } else if (ev.type === "tool_result") {
-      const band = ev.result && ev.result.risk_band;
-      if (band && traceEl.lastChild) {
-        traceEl.lastChild.innerHTML += ` <span class="band ${bandClass(band)}">${band} · ${ev.result.risk_score}/100</span>`;
+    } else if(ev.type==="tool_result"){
+      const r=ev.result;
+      if(r && r.risk_band){
+        const k=bandKey(r.risk_band);
+        if($("#trace").lastChild) $("#trace").lastChild.innerHTML+=` <span class="rbadge ${k}">${r.risk_band} · ${r.risk_score}/100</span>`;
+        renderDashboard(r);
       }
-    } else if (ev.type === "final") {
-      reportPanel.classList.remove("hidden");
-      reportEl.innerHTML = marked.parse(ev.report || "");
-    } else if (ev.type === "error") {
-      reportPanel.classList.remove("hidden");
-      reportEl.innerHTML = `<p style="color:var(--red)"><b>Error:</b> ${escapeHtml(ev.message)}</p>
-        <p style="color:var(--muted)">If this is about the API key, add <code>ANTHROPIC_API_KEY</code> to your <code>.env</code>.</p>`;
+    } else if(ev.type==="final"){
+      $("#status").classList.add("hidden");
+      const rp=$("#report-panel"); rp.classList.remove("hidden"); rp.classList.add("reveal");
+      $("#report").innerHTML=marked.parse(ev.report||"");
+    } else if(ev.type==="error"){
+      $("#status").classList.add("hidden");
+      const rp=$("#report-panel"); rp.classList.remove("hidden");
+      $("#report").innerHTML=`<p style="color:var(--red)"><b>Error:</b> ${escapeHtml(ev.message)}</p><p style="color:var(--muted)">If this is about the API key, add <code>ANTHROPIC_API_KEY</code> to <code>.env</code>.</p>`;
     }
   };
-  es.addEventListener("end", finish);
-  es.onerror = finish;
-  function finish() { es.close(); goBtn.disabled = false; traceStatus.innerHTML = '<span class="check">✓</span>'; }
+  es.addEventListener("end", finish); es.onerror=finish;
+  function finish(){ es.close(); goBtn.disabled=false; $("#status").classList.add("hidden"); }
 }
-
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 </script>
 </body>
 </html>
