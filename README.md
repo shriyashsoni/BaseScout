@@ -2,6 +2,8 @@
 
 **An AI DeFi research analyst for the Base network.**
 
+![BaseScout Demo Screenshot](https://raw.githubusercontent.com/shriyashsoni/BaseScout/main/static/demo.png)
+
 Point it at any token — a ticker, a name, or a `0x` contract address — and BaseScout
 investigates it live: pulling real market data and on-chain facts, running a
 deterministic risk engine, and writing an honest, plain-English research brief.
@@ -59,6 +61,17 @@ real tool results — it never invents data.
 | `cli.py` | Command-line interface. |
 | `app.py` | FastAPI backend with SSE streaming of the agent trace. |
 | `static/index.html` | Single-page demo UI. |
+
+---
+
+## 🚀 Deployment (Render)
+
+BaseScout is ready to be deployed on Render for free:
+1. Connect your GitHub repository to [Render](https://render.com/).
+2. Create a new **Web Service**.
+3. It will automatically detect the `render.yaml` Blueprint or the `Procfile`.
+4. Go to the service **Environment** settings and add your `ANTHROPIC_API_KEY`.
+5. Deploy!
 
 ---
 
